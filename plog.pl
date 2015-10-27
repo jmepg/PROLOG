@@ -13,6 +13,8 @@
 
 */
 
+:- use_module(library(lists)).
+
 %Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...]
 
 createBoard(B):- 
@@ -30,12 +32,9 @@ displayBoard([]):-
 displayBoard([Line|B]):-
 	displayLine(Line),
 	displayBoard(B).
-<<<<<<< HEAD
-
-init:-createBoard(B),drawBoard(B,0).
-=======
 	
->>>>>>> b80aa223c53af4efb86916f86daa52bc68230b3c
+init(X,Y,Ring):-createBoard(B),drawBoard(B,0),getRing(B,X,Y,Ring).
+	
 
 getRing([Ring,Disk],Ring).
 
@@ -84,33 +83,6 @@ printVerticalLine(Number):-
 	N is Number - 1,
 	printVerticalLine(N).
 
-drawL1(0).
-drawL1(Number):-
-	printVerticalLine(1),
-	emptySpace(3),
-	N1 is Number - 1,
-	drawL1(N1).
-
-drawL2(0).
-drawL2(Number):-
-	printVerticalLine(1),
-	emptySpace(3),
-	N1 is Number - 1,
-	drawL2(N1).
-
-drawBoard(0).
-drawBoard(LineSquareNumber):-
-	nl,
-	printHorizontalLine(29),
-	nl,
-	drawL1(8),
-	nl,
-	drawL2(8),
-	nl,
-	printHorizontalLine(29),
-	N1 is LineSquareNumber - 1,
-	drawBoard(N1).
-
 emptySpace(0).
 emptySpace(NumberofSpaces):-
 	write(' '),
@@ -130,6 +102,8 @@ placeBlackRing(_):-
 placeBlackDisk(_):-
 	write('4').
 	
+	%Drawing of board
+	
 drawBlank(0).
 drawBlank(N):- write(' '),write(' '),N1 is N - 1, drawBlank(N1).
 
@@ -138,16 +112,29 @@ drawLine([]):-write('|').
 drawLine([[Ring,Disk]|Rest]):-write('|'),write(Ring),write(','),write(Disk),drawLine(Rest).
 
 	
-drawTopLine(0):-write('/-\\').
-drawTopLine(N):-write('/-\\_'), N1 is N - 1, drawTopLine(N1).
+drawTopLine(0):-write('/ \\').
+drawTopLine(N):-write('/ \\ '), N1 is N - 1, drawTopLine(N1).
+
+drawBotLine(0):-write('\\').
+drawBotLine(N):-write('\\_/ '), N1 is N - 1, drawBotLine(N1).
+
 	
-drawBoard([],N):-write(' '),drawBlank(N),drawTopLine(N).
+drawBoard([],N):-drawBlank(N),drawBotLine(7),nl.
 	
-drawBoard([Line|RestBoard],N):-
-				drawBlank(N),write(' '),drawTopLine(6),
-				nl,
-				drawBlank(N),drawLine(Line),
+drawBoard([Line|RestBoard],N):-drawBlank(N),drawBotLine(7),nl,
+				write(' '),drawBlank(N),drawLine(Line),
 				nl,
 				N1 is N + 1,
 				drawBoard(RestBoard,N1).
+				
+%Movements
+	
+
+getElem(Board,X,Y,Elem):-nth1(Y,Board,Line),nth1(X,Line,Elem).
+
+getRing(Board,X,Y,Ring):-getElem(Board,X,Y,[Ring,_]).
+
+getDisk(Board,X,Y,Disk):-getElem(Board,X,Y,[_,Disk]).
+
+
 				
