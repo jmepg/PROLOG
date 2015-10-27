@@ -128,7 +128,6 @@ placeBlackRing(_):-
 	write('3').
 
 placeBlackDisk(_):-
-<<<<<<< HEAD
 	write('4').
 	
 drawBlank(0).
@@ -152,6 +151,3 @@ drawBoard([Line|RestBoard],N):-
 				N1 is N + 1,
 				drawBoard(RestBoard,N1).
 				
-=======
-	write('4').
->>>>>>> b80aa223c53af4efb86916f86daa52bc68230b3c
