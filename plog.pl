@@ -33,12 +33,12 @@ displayBoard([Line|B]):-
 	displayLine(Line),
 	displayBoard(B).
 	
-init(X,Y,Ring):-createBoard(B),drawBoard(B,0),getRing(B,X,Y,Ring).
+init(X,Y,Ring,Disk):-createBoard(B),drawBoard(B,0),setRing(B,X,Y,Ring,NewB),setDisk(NewB,X,Y,Disk,NewB2),drawBoard(NewB2,0).
 	
 
-getRing([Ring,Disk],Ring).
+getRing([Ring,_],Ring).
 
-getDisk([Ring,Disk],Disk).
+getDisk([_,Disk],Disk).
 
 displayLine(Line):-
 	printHorizontalLine(29),
@@ -125,11 +125,24 @@ drawBoard([Line|RestBoard],N):-drawBlank(N),drawBotLine(7),nl,
 				write(' '),drawBlank(N),drawLine(Line),
 				nl,
 				N1 is N + 1,
-				drawBoard(RestBoard,N1).
+				drawBoard(RestBoard,N1),!.
 				
 %Movements
 	
+%aux
 
+setDisk(Board,X,Y,Disk,NewBoard):- getRing(Board,X,Y,Ring),setMatrix(Board,X,Y,[Ring,Disk],NewBoard).
+
+setRing(Board,X,Y,Ring,NewBoard):- getDisk(Board,X,Y,Disk), setMatrix(Board,X,Y,[Ring,Disk],NewBoard).
+
+setMatrix(Matrix,X,Y,Value,NewMatrix):-getListFromMatrix(Matrix,Y,List), setList(List,X,Value,NewList), setList(Matrix,Y,NewList,NewMatrix).
+
+getListFromMatrix(Matrix,N,List):-nth1(N,Matrix,List).
+
+setList([_|Rest],1,NewValue,[NewValue|Rest]):-!.
+
+setList([H|Rest],N,NewValue,[H|NewRest]):- N1 is N - 1,setList(Rest,N1,NewValue,NewRest).
+	
 getElem(Board,X,Y,Elem):-nth1(Y,Board,Line),nth1(X,Line,Elem).
 
 getRing(Board,X,Y,Ring):-getElem(Board,X,Y,[Ring,_]).
