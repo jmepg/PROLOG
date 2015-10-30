@@ -1,4 +1,4 @@
-/*Como fazer as jogadas:
+/* Como fazer as jogadas:
 	Pretas:
 		Para colocar um anel -  placeBlackRing([lin,col]).
 		Para colocar um disco - placeBlackDisk([lin,col]).
@@ -15,7 +15,7 @@
 
 :- use_module(library(lists)).
 
-%Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...]
+/* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
 
 createBoard(B):- 
 	B = [[[0,0], [0,0], [1,2], [0,0], [0,0], [0,0], [0,0]],
@@ -32,7 +32,8 @@ displayBoard([]):-
 displayBoard([Line|B]):-
 	displayLine(Line),
 	displayBoard(B).
-	
+
+/* init function */
 init(X,Y,Ring,Disk):-createBoard(B),drawBoard(B,0),setRing(B,X,Y,Ring,NewB),setDisk(NewB,X,Y,Disk,NewB2),drawBoard(NewB2,0).
 	
 
@@ -69,7 +70,7 @@ printDisks([Elem|Line]):-
 	emptySpace(1),
 	printDisks(Line).
 
-%imprime as linhas horizontais
+/* imprime as linhas horizontais*/
 printHorizontalLine(0):-
 	nl.
 printHorizontalLine(NumberOfDashes) :-
@@ -102,7 +103,8 @@ placeBlackRing(_):-
 placeBlackDisk(_):-
 	write('4').
 	
-	%Drawing of board
+	
+/*	Drawing of board 	*/
 	
 drawBlank(0).
 drawBlank(N):- write(' '),write(' '),N1 is N - 1, drawBlank(N1).
@@ -127,9 +129,9 @@ drawBoard([Line|RestBoard],N):-drawBlank(N),drawBotLine(7),nl,
 				N1 is N + 1,
 				drawBoard(RestBoard,N1),!.
 				
-%Movements
+/*	Movements	*/
 	
-%aux
+/*	aux		*/
 
 setDisk(Board,X,Y,Disk,NewBoard):- getRing(Board,X,Y,Ring),setMatrix(Board,X,Y,[Ring,Disk],NewBoard).
 
