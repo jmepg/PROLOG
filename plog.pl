@@ -19,13 +19,13 @@
 /* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
 
 createBoard(B):- 
-	B = [[[1,0], [0,4], [1,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,4], [0,4], [0,0], [3,2], [1,4], [0,0], [0,0]],
-		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,4], [0,4], [3,2], [1,0], [3,2], [0,0], [0,0]],
-		  [[0,0], [0,4], [3,0], [3,4], [1,2], [3,0], [3,0]],
-		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [1,0]],
-		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
+	B = [[[1,2], [1,2], [1,2], [1,2], [1,2], [1,2], [1,2]],
+		  [[3,4], [0,4], [0,0], [3,\2], [1,4], [0,0], [0,0]],
+		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[3,4], [0,4], [3,2], [1,0], [3,2], [0,0], [0,0]],
+		  [[3,4], [0,4], [3,0], [3,4], [1,2], [3,0], [3,0]],
+		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [1,0]],
+		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
 
 displayBoard([]):-
 	printHorizontalLine(29).
@@ -245,15 +245,18 @@ movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
 
 movePawn(Board,Player,_,_,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, movePawnAux(Board,Player,NewBoard),!.
 
+/*------------------------------------------------------------*/
+%BLACK DISK
+
 winBlackDisk(_,_,7,_):-write('BLACK WON'),nl,!.
 winBlackDisk(Board,X,Y,Searched):-
-	X<8, Y<8,
+	X<8,Y<8,
 	getDisk(Board,X,Y,NewDisk), 
 	NewDisk = 4, 
 	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
-	verifyBlackDiskExistence(Board,L,Searched). 
-
-winBlackDisk(Board,X,Y,Searched):-NextX is X+1, winBlackDisk(Board,NextX,Y,Searched),!.
+	verifyBlackDiskExistence(Board,L,Searched).  
+winBlackDisk(_,8,_,_):-fail,!.
+winBlackDisk(Board,X,Y,Searched):-X<8,NextX is X+1, winBlackDisk(Board,NextX,Y,Searched),!.
 
 verifyBlackDiskExistence(_,[],_,_):-!.
 verifyBlackDiskExistence(Board,[L|_],Searched):-
@@ -264,3 +267,72 @@ verifyBlackDiskExistence(Board,[L|_],Searched):-
 	getDisk(Board,X,Y,NewDisk), NewDisk = 4,
 	winBlackDisk(Board,X,Y,NewSearched),!.
 verifyBlackDiskExistence(Board,[_|LTail], Searched):- verifyBlackDiskExistence(Board,LTail,Searched),!.
+/*------------------------------------------------------------*/
+%BLACK RING
+
+winBlackRing(_,_,7,_):-write('BLACK WON'),nl,!.
+winBlackRing(Board,X,Y,Searched):-
+	X<8, Y<8,
+	getRing(Board,X,Y,NewRing), 
+	NewRing = 3, 
+	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
+	verifyBlackRingExistence(Board,L,Searched). 
+winBlackRing(_,8,_,_):-fail,!.
+winBlackRing(Board,X,Y,Searched):-X<8, NextX is X+1, winBlackRing(Board,NextX,Y,Searched),!.
+
+verifyBlackRingExistence(_,[],_,_):-!.
+verifyBlackRingExistence(Board,[L|_],Searched):-
+	\+(member(L,Searched)),
+	write(Searched),nl, write(L),nl,
+	append(Searched,[L],NewSearched),
+	nth0(0,L,X),nth0(1,L,Y),
+	getRing(Board,X,Y,NewRing), NewRing = 3,
+	winBlackRing(Board,X,Y,NewSearched),!.
+verifyBlackRingExistence(Board,[_|LTail], Searched):- verifyBlackRingExistence(Board,LTail,Searched),!.
+/*-----------------------------------------------------------------------------------*/
+%White DISK
+
+winWhiteDisk(_,7,_,_):-write('White WON'),nl,!.
+winWhiteDisk(Board,X,Y,Searched):-
+	X<8, Y<8,
+	getDisk(Board,X,Y,NewDisk), 
+	NewDisk = 2,
+	write('DISK'),nl, 
+	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
+	verifyWhiteDiskExistence(Board,L,Searched).  
+winWhiteDisk(_,_,8,_):-fail,!.
+winWhiteDisk(Board,X,Y,Searched):-Y<8,NextY is Y+1, winWhiteDisk(Board,X,NextY,Searched),!.
+
+verifyWhiteDiskExistence(_,[],_,_):-!.
+verifyWhiteDiskExistence(Board,[L|_],Searched):-
+	\+(member(L,Searched)),
+	write(Searched),nl, write(L),nl,
+	append(Searched,[L],NewSearched),
+	nth0(0,L,X),nth0(1,L,Y),
+	getDisk(Board,X,Y,NewDisk), NewDisk = 2,
+	winWhiteDisk(Board,X,Y,NewSearched),!.
+verifyWhiteDiskExistence(Board,[_|LTail], Searched):- verifyWhiteDiskExistence(Board,LTail,Searched),!.
+
+/*------------------------------------------------------------------------------*/
+%WHITE RING
+%BLACK RING
+
+winWhiteRing(_,7,_,_):-write('White WON'),nl,!.
+winWhiteRing(Board,X,Y,Searched):-
+	X<8, Y<8,
+	getRing(Board,X,Y,NewRing), 
+	NewRing = 1, 
+	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
+	verifyWhiteRingExistence(Board,L,Searched). 
+winWhiteRing(_,_,8,_):-fail,!.
+winWhiteRing(Board,X,Y,Searched):-Y<8,NextY is Y+1, winWhiteRing(Board,X,NextY,Searched),!.
+
+verifyWhiteRingExistence(_,[],_,_):-!.
+verifyWhiteRingExistence(Board,[L|_],Searched):-
+	\+(member(L,Searched)),
+	write(Searched),nl, write(L),nl,
+	append(Searched,[L],NewSearched),
+	nth0(0,L,X),nth0(1,L,Y),
+	getRing(Board,X,Y,NewRing), NewRing = 1,
+	winWhiteRing(Board,X,Y,NewSearched),!.
+verifyWhiteRingExistence(Board,[_|LTail], Searched):- verifyWhiteRingExistence(Board,LTail,Searched),!.
