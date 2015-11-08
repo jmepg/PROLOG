@@ -19,13 +19,13 @@
 /* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
 
 createBoard(B):- 
-	B = [[[0,0], [0,0], [1,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [3,2], [1,4], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [3,2], [1,0], [3,2], [0,0], [0,0]],
-		  [[0,0], [0,0], [3,4], [3,4], [1,2], [3,0], [3,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [1,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
+	B = [[[1,0], [0,4], [1,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,4], [0,4], [0,0], [3,2], [1,4], [0,0], [0,0]],
+		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,4], [0,4], [3,2], [1,0], [3,2], [0,0], [0,0]],
+		  [[0,0], [0,4], [3,0], [3,4], [1,2], [3,0], [3,0]],
+		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [1,0]],
+		  [[0,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
 
 displayBoard([]):-
 	printHorizontalLine(29).
@@ -178,63 +178,89 @@ validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn):-
 		(Pawn =:= 1, Player =:= 1, getRing(Board,X,Y,Ring),getRing(Board,Xf,Yf,NewRing),Ring =:= 3, NewRing =:= 0);
 		(Pawn =:= 0, Player =:= 1, getDisk(Board,X,Y,Disk),getDisk(Board,Xf,Yf,NewDisk),Disk =:= 4, NewDisk =:= 0)))).
 
-play(Board):-
-	write('White'),nl,
+play(Board, Player):-
+	drawBoard(Board,0),
+	((Player =:= 0,
+	write('White'), write('Player: '), write(Player),nl,
 	write('Place - 0, Move - 1'),nl, read(Ans),
-	((Ans =:= 0, placePawn(Board,0));
-	(Ans =:= 1, movePawn(Board,0))).
+	((Ans=:=0);(Ans=:=1)),
+	((Ans =:= 0, placePawnAux(Board,Player,NewBoard));
+	(Ans =:= 1, movePawnAux(Board,Player,NewBoard))),
+	Player1 is 1);
+	(Player =:= 1,
+	write('Black'),write('Player: '), write(Player), nl,
+	write('Place - 0, Move - 1'),nl, read(Ans),
+	((Ans =:= 0, placePawnAux(Board,Player,NewBoard));
+	(Ans =:= 1, movePawnAux(Board,Player,NewBoard))),
+	Player1 is 0)),
+	!, play(NewBoard,Player1).
 
+play(Board,Player):- write('Invalid Input'),nl,nl,play(Board,Player),!.
+	
 
-
-
-placePawn(Board, Player):-
+placePawnAux(Board, Player, NewBoard):-
 	write('PLACE A PAWM'),nl,
 	write('Disk - 0 Ring - 1'),nl, read(Ans),
-	write('X'), read(X),nl,
-	write('Y'), read(Y),nl,
-	Pawn is 0, Mode is 0, Xf is 0, Yf is 0, 
-	validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn),
-	((Ans =:= 0, ((Player =:= 0, Disk is 2);
+	write('X'), read(Xf),nl,
+	write('Y'), read(Yf),nl,
+	placePawn(Board,Player,Ans,Xf,Yf,NewBoard).
+
+
+placePawn(Board,Player,Pawn,X,Y,NewBoard):-
+	validPlay(Board, _, _, _,X,Y,0, _),
+	((Pawn =:= 0, ((Player =:= 0, Disk is 2);
 				(Player =:= 1, Disk is 4)),
 	setDisk(Board,X,Y,Disk,NewBoard));
-		(Ans =:= 1, ((Player =:= 0, Ring is 1);
+		(Pawn =:= 1, ((Player =:= 0, Ring is 1);
 				(Player =:= 1, Ring is 3)),
-	setRing(Board,X,Y,Ring,NewBoard))),
-	drawBoard(NewBoard,0).
+	setRing(Board,X,Y,Ring,NewBoard))).
 
-movePawn(Board,Player):-
-	write('MOVE A PAWM'),nl,
+placePawn(Board,Player,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, placePawnAux(Board,Player,NewBoard),!.
+
+movePawnAux(Board,Player,NewBoard):-
+	write('MOVE A PAWN'),nl,
 	write('X'), read(X),nl,
 	write('Y'), read(Y),nl,
 	getRing(Board,X,Y,Ring), getDisk(Board,X,Y,Disk),
+	write('RING: '), write(Ring), write('  Disk: '), write(Disk),nl,
 	write('Disk - 0 Ring - 1'),nl, read(Ans),
-	write('RING'), write(Ring), write('Disk'), write(Disk),
-	((Ans =:= 0, Player =:= 0, Disk =\= 2, write('ERROR'),nl, movePawn(Board,Player)); %Os erros estao a funcionar
-	(Ans =:= 0, Player =:= 1, Disk =\= 4,write('ERROR'),nl, movePawn(Board,Player));
-	(Ans =:= 1, Player =:= 0, Ring =\= 1,write('ERROR'),nl, movePawn(Board,Player));
-	(Ans =:= 1, Player =:= 1, Ring =\= 3,write('ERROR'),nl, movePawn(Board,Player)),
-	(Ans =:= 0, Player =:= 0, Disk =:= 2, Pawn is 0, write('Move to:'),nl,write('Xf'), read(Xf),nl,
-	write('Yf'), read(Yf),nl);
-	(Ans =:= 0, Player =:= 1, Disk =:= 4, Pawn is 0, write('Move to:'),nl,write('Xf'), read(Xf),nl,
-	write('Yf'), read(Yf),nl);
-	(Ans =:= 1, Player =:= 0, Ring =:= 1, Pawn is 1, write('Move to:'),nl,write('Xf'), read(Xf),nl,
-	write('Yf'), read(Yf),nl);
-	(Ans =:= 1, Player =:= 1, Ring =:=3, Pawn is 1, write('Move to:'),nl,write('Xf'), read(Xf),nl,
-	write('Yf'), read(Yf),nl)),
-	Mode is 1,
-	validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn),
-	move(Board,Player,X,Y,Xf,Yf,Pawn).
+	((Ans =:= 0, Player =:= 0, Disk =\= 2, write('ERROR'),nl,Test is 0); 
+	(Ans =:= 0, Player =:= 1, Disk =\= 4,write('ERROR'),nl,Test is 0);
+	(Ans =:= 1, Player =:= 0, Ring =\= 1,write('ERROR'),nl,Test is 0);
+	(Ans =:= 1, Player =:= 1, Ring =\= 3,write('ERROR'),nl,Test is 0);
+	(Ans =:= 0, Player =:= 0, Disk =:= 2, Pawn is 0, write('Move to:'),nl,write('Xf'), read(Xf),nl, write('Yf'), read(Yf),nl,Test is 1);
+	(Ans =:= 0, Player =:= 1, Disk =:= 4, Pawn is 0, write('Move to:'),nl,write('Xf'), read(Xf),nl,write('Yf'), read(Yf),nl,Test is 1);
+	(Ans =:= 1, Player =:= 0, Ring =:= 1, Pawn is 1, write('Move to:'),nl,write('Xf'), read(Xf),nl,write('Yf'), read(Yf),nl,Test is 1);
+	(Ans =:= 1, Player =:= 1, Ring =:= 3, Pawn is 1, write('Move to:'),nl,write('Xf'), read(Xf),nl,write('Yf'), read(Yf),nl,Test is 1)),
+	((Test =:= 0, !,movePawnAux(Board,Player, NewBoard));
+	(Test=:=1, movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard))).
 
 
+movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
+	validPlay(Board,Player,X,Y,Xf,Yf,1,Pawn),
+	((Player =:= 0,((Pawn =:= 0, setDisk(Board,X,Y,0,NewBoard), setDisk(NewBoard,Xf,Yf,2,NewBoard2));
+					(Pawn =:= 1, setRing(Board,X,Y,0,NewBoard), setRing(NewBoard,Xf,Yf,1,NewBoard2))));
+	(Player =:= 1, ((Pawn =:= 0, setDisk(Board,X,Y,0,NewBoard), setDisk(NewBoard,Xf,Yf,4,NewBoard2));
+					(Pawn =:= 1, setRing(Board,X,Y,0,NewBoard), setRing(NewBoard,Xf,Yf,3,NewBoard2))))).
 
-move(Board,Player,X,Y,Xf,Yf,Pawn):-
-	((Player =:= 0,(Pawn =:= 0, setDisk(Board,X,Y,0,NewBoard), setDisk(NewBoard,Xf,Yf,2,NewBoard2));
-					(Pawn =:= 1, setRing(Board,X,Y,0,NewBoard), setRing(NewBoard,Xf,Yf,1,NewBoard2)));
-	(Player =:= 1, (Pawn =:= 0, setDisk(Board,X,Y,0,NewBoard), setDisk(NewBoard,Xf,Yf,4,NewBoard2));
-					(Pawn =:= 1, setRing(Board,X,Y,0,NewBoard), setRing(NewBoard,Xf,Yf,3,NewBoard2)))),
-	drawBoard(NewBoard2,0).
+movePawn(Board,Player,_,_,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, movePawnAux(Board,Player,NewBoard),!.
 
+winBlackDisk(_,_,7,_):-write('BLACK WON'),nl,!.
+winBlackDisk(Board,X,Y,Searched):-
+	X<8, Y<8,
+	getDisk(Board,X,Y,NewDisk), 
+	NewDisk = 4, 
+	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
+	verifyBlackDiskExistence(Board,L,Searched). 
 
-	
+winBlackDisk(Board,X,Y,Searched):-NextX is X+1, winBlackDisk(Board,NextX,Y,Searched),!.
 
-
+verifyBlackDiskExistence(_,[],_,_):-!.
+verifyBlackDiskExistence(Board,[L|_],Searched):-
+	\+(member(L,Searched)),
+	write(Searched),nl, write(L),nl,
+	append(Searched,[L],NewSearched),
+	nth0(0,L,X),nth0(1,L,Y),
+	getDisk(Board,X,Y,NewDisk), NewDisk = 4,
+	winBlackDisk(Board,X,Y,NewSearched),!.
+verifyBlackDiskExistence(Board,[_|LTail], Searched):- verifyBlackDiskExistence(Board,LTail,Searched),!.
