@@ -15,17 +15,18 @@
 
 :- use_module(library(lists)).
 :- use_module(library(between)).
+:- use_module(library(random)).
 
 /* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
 
 createBoard(B):- 
-	B = [[[0,0], [1,2], [1,2], [1,2], [1,2], [1,2], [1,2]],
-		  [[3,4], [0,4], [0,0], [3,2], [1,4], [0,0], [0,0]],
-		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[3,4], [0,4], [3,2], [1,0], [3,2], [0,0], [0,0]],
-		  [[3,4], [0,4], [3,0], [3,4], [1,2], [3,0], [3,0]],
-		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [1,0]],
-		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
+	B = [[[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
 
 displayBoard([]):-
 	printHorizontalLine(29).
@@ -156,6 +157,9 @@ getDisk(Board,X,Y,Disk):-getElem(Board,X,Y,[_,Disk]).
 
 verifyEmpty([Ring,Disk]):-(Ring =:= 0, Disk =:= 0). 
 
+checkEmptyList([]):-fail,!.
+checkEmptyList(L):-!.
+
 verifyAdjacent(X,Y,Xf,Yf):- Y1  is Y - 1,Y2 is Y + 1, between(Y1,Y2,YIndex),YIndex>0,YIndex<8,Yf is YIndex,(
 							(YIndex =:= Y1,XF is X + 1,(Xf is X;(XF < 8,Xf is XF)));
 							(YIndex =:= Y,XF1 is X - 1, XF2 is X + 1,((XF1 > 0, Xf is XF1);(XF1 <8,Xf is XF2)));
@@ -168,6 +172,7 @@ verifyAdjacent(X,Y,Xf,Yf):- Y1  is Y - 1,Y2 is Y + 1, between(Y1,Y2,YIndex),YInd
 
 
 validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn):-
+between(1,7,Xf),between(1,7,Yf),between(1,7,X),between(1,7,Y),
 	getElem(Board,Xf,Yf,Elem),
 	((Mode =:= 0,
 		verifyEmpty(Elem));
@@ -178,7 +183,7 @@ validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn):-
 		(Pawn =:= 1, Player =:= 1, getRing(Board,X,Y,Ring),getRing(Board,Xf,Yf,NewRing),Ring =:= 3, NewRing =:= 0);
 		(Pawn =:= 0, Player =:= 1, getDisk(Board,X,Y,Disk),getDisk(Board,Xf,Yf,NewDisk),Disk =:= 4, NewDisk =:= 0)))).
 
-play(Board, Player):-
+playPvP(Board, Player):-
 	testWin(Board),
 	drawBoard(Board,0),
 	((Player =:= 0, write('White'), write('Player: '), write(Player),nl,
@@ -192,9 +197,30 @@ play(Board, Player):-
 	drawBoard(NewBoard,0),
 	playMoveAux(NewBoard,Player,NewBoard1),
 	Player1 is 0)),
-	!, play(NewBoard1,Player1).
-play(Board,Player):- write('Invalid Input'),nl,nl,play(Board,Player),!.
+	!, playPvP(NewBoard1,Player1).
+playPvP(Board,Player):- write('Invalid Input'),nl,nl,play(Board,Player),!.
 	
+playBvP(Board,Player):-
+	testWin(Board),
+	drawBoard(Board,0),
+	botPlaying(Board,Player,NewBoard),
+	playPlaceAux(NewBoard,Player,NewBoard1),
+	drawBoard(NewBoard1,0),
+	playMoveAux(NewBoard1,Player,NewBoard2),
+	playBvP(NewBoard2,NextP).
+
+playBvP(_,Player):- fail,!.
+
+playBvB(Board,Player):-
+	drawBoard(Board,0),
+	testWin(Board),
+	((Player =:= 0, write('White player'));
+	(Player =:=1, write('Black player'))),
+	botPlaying(Board,Player,NewBoard),
+	NextP is 1-Player,
+	playBvB(NewBoard,NextP).
+playBvB(_,Player):- fail,!.
+
 playPlaceAux(Board,Player,NewBoard):-
 	placePawnAux(Board,Player,NewBoard),!.
 playPlaceAux(Board,Player,NewBoard):- write('Invalid Input'),nl,nl,playPlaceAux(Board,Player,NewBoard),!.
@@ -203,9 +229,39 @@ playMoveAux(Board,Player,NewBoard):-
 	movePawnAux(Board,Player,NewBoard),!.
 playMoveAux(Board,Player,NewBoard):- write('Invalid Input'),nl,nl,playMoveAux(Board,Player,NewBoard),!.
 
+
+botPlaying(Board,Player,NewBoard):-
+	write('Player: '), write(Player), nl,nl,
+	drawBoard(Board,0),
+	botPlace(Board,Player,NewBoard),
+	drawBoard(NewBoard,0),
+	botMove(NewBoard,Player,NewBoard1).
+	
+
+botPlace(Board,Player,NewBoard):-
+	random(0,2,Pawn),
+	findall([Xf,Yf],validPlay(Board,Player,1,1,Xf,Yf,0,Pawn),L),
+	checkEmptyList(L),
+	length(L,Size), random(1,Size,Index), nth0(Index,L,Cell),
+	nth0(0,Cell,X), nth0(1,Cell,Y),
+	placePawn(Board,Player,Pawn,X,Y,NewBoard).
+botPlace(_,_,_):- write('Cannot place any pawn'),nl,!.
+
+
+botMove(Board,Player,NewBoard):-
+	random(0,2,Pawn),
+	findall([X,Y,Xf,Yf],validPlay(Board,Player,X,Y,Xf,Yf,1,Pawn),L),
+	write(L),nl,nl,
+	checkEmptyList(L),
+	length(L,Size), random(1,Size,Index), nth0(Index,L,Cell),
+	nth0(0,Cell,X1),nth0(1,Cell,Y1),nth0(2,Cell,X1f),nth0(3,Cell,Y1f),
+	movePawn(Board,Player,X1,Y1,X1f,Y1f,Pawn,NewBoard).
+botMove(_,_,_):-write('Cannot move any pawn'),nl,!.
+
 placePawnAux(Board, Player, NewBoard):-
 	write('PLACE A PAWM'),nl,
 	write('Disk - 0 Ring - 1'),nl, read(Ans),
+	findall([Xf,Yf],validPlay(Board,Player,1,1,Xf,Yf,0,Pawn),L),
 	write('X'), read(Xf),nl,
 	write('Y'), read(Yf),nl,
 	placePawn(Board,Player,Ans,Xf,Yf,NewBoard).
@@ -250,6 +306,7 @@ movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
 
 movePawn(Board,Player,_,_,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, movePawnAux(Board,Player,NewBoard),!.
 
+
 testWin(Board):-
 	\+winBlackDisk(Board,1,1,[1,1]),
 	\+winBlackRing(Board,1,1,[1,1]),
@@ -259,7 +316,7 @@ testWin(Board):-
 /*------------------------------------------------------------*/
 %BLACK DISK
 
-winBlackDisk(_,_,7,_):-write('BLACK WON'),nl,!.
+winBlackDisk(_,_,7,_):-write('BLACK WON DISK !!!!!!'),nl,!.
 winBlackDisk(Board,X,Y,Searched):-
 	X<8,Y<8,
 	getDisk(Board,X,Y,NewDisk), 
@@ -272,7 +329,6 @@ winBlackDisk(Board,X,Y,Searched):-X<8,NextX is X+1, winBlackDisk(Board,NextX,Y,S
 verifyBlackDiskExistence(_,[],_,_):-!.
 verifyBlackDiskExistence(Board,[L|_],Searched):-
 	\+(member(L,Searched)),
-	write(Searched),nl, write(L),nl,
 	append(Searched,[L],NewSearched),
 	nth0(0,L,X),nth0(1,L,Y),
 	getDisk(Board,X,Y,NewDisk), NewDisk = 4,
@@ -281,7 +337,7 @@ verifyBlackDiskExistence(Board,[_|LTail], Searched):- verifyBlackDiskExistence(B
 /*------------------------------------------------------------*/
 %BLACK RING
 
-winBlackRing(_,_,7,_):-write('BLACK WON'),nl,!.
+winBlackRing(_,_,7,_):-write('BLACK WON RING !!!'),nl,!.
 winBlackRing(Board,X,Y,Searched):-
 	X<8, Y<8,
 	getRing(Board,X,Y,NewRing), 
@@ -302,7 +358,7 @@ verifyBlackRingExistence(Board,[_|LTail], Searched):- verifyBlackRingExistence(B
 /*-----------------------------------------------------------------------------------*/
 %White DISK
 
-winWhiteDisk(_,7,_,_):-write('White WON'),nl,!.
+winWhiteDisk(_,7,_,_):-write('White WON DISK !!!!!'),nl,!.
 winWhiteDisk(Board,X,Y,Searched):-
 	X<8, Y<8,
 	getDisk(Board,X,Y,NewDisk), 
@@ -325,7 +381,7 @@ verifyWhiteDiskExistence(Board,[_|LTail], Searched):- verifyWhiteDiskExistence(B
 %WHITE RING
 %BLACK RING
 
-winWhiteRing(_,7,_,_):-write('White WON'),nl,!.
+winWhiteRing(_,7,_,_):-write('White WON RING !!!!'),nl,!.
 winWhiteRing(Board,X,Y,Searched):-
 	X<8, Y<8,
 	getRing(Board,X,Y,NewRing), 
@@ -344,11 +400,13 @@ verifyWhiteRingExistence(Board,[L|_],Searched):-
 	winWhiteRing(Board,X,Y,NewSearched),!.
 verifyWhiteRingExistence(Board,[_|LTail], Searched):- verifyWhiteRingExistence(Board,LTail,Searched),!.
 
+
+
+
 mainMenu:-
 	printMainMenu,
-	createBoard(B),
 	read(Input),
-	((Input =:= 1, play(B,0), mainMenu);
+	((Input =:= 1, gameOptions, mainMenu);
 	(Input =:= 2, printHowToPlay, mainMenu);
 	(Input =:= 3, printCredits, mainMenu);
 	(Input =:= 4);
@@ -364,6 +422,31 @@ printMainMenu:-
 	write('    1. Play           '), nl,
 	write('    2. How to play    '), nl,
 	write('    3. Credits        '), nl,
+	write('    4. Exit           '), nl,
+	write('  ******************  '), nl,
+	write('                      '), nl,
+	write('  Choose an option:   '), nl.
+
+gameOptions:-
+	printGameOptions,
+	read(Input),
+	createBoard(B),
+	((Input =:= 1, playPvP(B,0));
+	(Input =:= 2, playBvP(B,0));
+	(Input =:= 3, playBvB(B,0));
+	(Input =:= 4);
+	(nl, write('Error: invalid input.'),nl, mainMenu)).
+
+printGameOptions:-
+	write('      * * * *         '), nl,
+	write('    *         *       '), nl,
+	write('  *   Options   *     '), nl,
+	write('    *         *       '), nl,
+	write('      * * * *         '), nl,
+	write('  ******************  '), nl,
+	write('    1. P vs P         '), nl,
+	write('    2. B vs P         '), nl,
+	write('    3. B vs B         '), nl,
 	write('    4. Exit           '), nl,
 	write('  ******************  '), nl,
 	write('                      '), nl,
