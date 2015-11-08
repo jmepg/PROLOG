@@ -19,8 +19,8 @@
 /* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
 
 createBoard(B):- 
-	B = [[[1,2], [1,2], [1,2], [1,2], [1,2], [1,2], [1,2]],
-		  [[3,4], [0,4], [0,0], [3,\2], [1,4], [0,0], [0,0]],
+	B = [[[0,0], [1,2], [1,2], [1,2], [1,2], [1,2], [1,2]],
+		  [[3,4], [0,4], [0,0], [3,2], [1,4], [0,0], [0,0]],
 		  [[3,4], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
 		  [[3,4], [0,4], [3,2], [1,0], [3,2], [0,0], [0,0]],
 		  [[3,4], [0,4], [3,0], [3,4], [1,2], [3,0], [3,0]],
@@ -179,24 +179,29 @@ validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn):-
 		(Pawn =:= 0, Player =:= 1, getDisk(Board,X,Y,Disk),getDisk(Board,Xf,Yf,NewDisk),Disk =:= 4, NewDisk =:= 0)))).
 
 play(Board, Player):-
+	testWin(Board),
 	drawBoard(Board,0),
-	((Player =:= 0,
-	write('White'), write('Player: '), write(Player),nl,
-	write('Place - 0, Move - 1'),nl, read(Ans),
-	((Ans=:=0);(Ans=:=1)),
-	((Ans =:= 0, placePawnAux(Board,Player,NewBoard));
-	(Ans =:= 1, movePawnAux(Board,Player,NewBoard))),
+	((Player =:= 0, write('White'), write('Player: '), write(Player),nl,
+	playPlaceAux(Board,Player,NewBoard),
+	drawBoard(NewBoard,0),
+	playMoveAux(NewBoard,Player,NewBoard1),
 	Player1 is 1);
 	(Player =:= 1,
 	write('Black'),write('Player: '), write(Player), nl,
-	write('Place - 0, Move - 1'),nl, read(Ans),
-	((Ans =:= 0, placePawnAux(Board,Player,NewBoard));
-	(Ans =:= 1, movePawnAux(Board,Player,NewBoard))),
+	playPlaceAux(Board,Player,NewBoard),
+	drawBoard(NewBoard,0),
+	playMoveAux(NewBoard,Player,NewBoard1),
 	Player1 is 0)),
-	!, play(NewBoard,Player1).
-
+	!, play(NewBoard1,Player1).
 play(Board,Player):- write('Invalid Input'),nl,nl,play(Board,Player),!.
 	
+playPlaceAux(Board,Player,NewBoard):-
+	placePawnAux(Board,Player,NewBoard),!.
+playPlaceAux(Board,Player,NewBoard):- write('Invalid Input'),nl,nl,playPlaceAux(Board,Player,NewBoard),!.
+
+playMoveAux(Board,Player,NewBoard):-
+	movePawnAux(Board,Player,NewBoard),!.
+playMoveAux(Board,Player,NewBoard):- write('Invalid Input'),nl,nl,playMoveAux(Board,Player,NewBoard),!.
 
 placePawnAux(Board, Player, NewBoard):-
 	write('PLACE A PAWM'),nl,
@@ -245,6 +250,12 @@ movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
 
 movePawn(Board,Player,_,_,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, movePawnAux(Board,Player,NewBoard),!.
 
+testWin(Board):-
+	\+winBlackDisk(Board,1,1,[1,1]),
+	\+winBlackRing(Board,1,1,[1,1]),
+	\+winWhiteDisk(Board,1,1,[1,1]),
+	\+winWhiteRing(Board,1,1,[1,1]).
+
 /*------------------------------------------------------------*/
 %BLACK DISK
 
@@ -283,7 +294,6 @@ winBlackRing(Board,X,Y,Searched):-X<8, NextX is X+1, winBlackRing(Board,NextX,Y,
 verifyBlackRingExistence(_,[],_,_):-!.
 verifyBlackRingExistence(Board,[L|_],Searched):-
 	\+(member(L,Searched)),
-	write(Searched),nl, write(L),nl,
 	append(Searched,[L],NewSearched),
 	nth0(0,L,X),nth0(1,L,Y),
 	getRing(Board,X,Y,NewRing), NewRing = 3,
@@ -297,7 +307,6 @@ winWhiteDisk(Board,X,Y,Searched):-
 	X<8, Y<8,
 	getDisk(Board,X,Y,NewDisk), 
 	NewDisk = 2,
-	write('DISK'),nl, 
 	findall([Xf,Yf],verifyAdjacent(X,Y,Xf,Yf),L),
 	verifyWhiteDiskExistence(Board,L,Searched).  
 winWhiteDisk(_,_,8,_):-fail,!.
@@ -306,7 +315,6 @@ winWhiteDisk(Board,X,Y,Searched):-Y<8,NextY is Y+1, winWhiteDisk(Board,X,NextY,S
 verifyWhiteDiskExistence(_,[],_,_):-!.
 verifyWhiteDiskExistence(Board,[L|_],Searched):-
 	\+(member(L,Searched)),
-	write(Searched),nl, write(L),nl,
 	append(Searched,[L],NewSearched),
 	nth0(0,L,X),nth0(1,L,Y),
 	getDisk(Board,X,Y,NewDisk), NewDisk = 2,
@@ -330,9 +338,70 @@ winWhiteRing(Board,X,Y,Searched):-Y<8,NextY is Y+1, winWhiteRing(Board,X,NextY,S
 verifyWhiteRingExistence(_,[],_,_):-!.
 verifyWhiteRingExistence(Board,[L|_],Searched):-
 	\+(member(L,Searched)),
-	write(Searched),nl, write(L),nl,
 	append(Searched,[L],NewSearched),
 	nth0(0,L,X),nth0(1,L,Y),
 	getRing(Board,X,Y,NewRing), NewRing = 1,
 	winWhiteRing(Board,X,Y,NewSearched),!.
 verifyWhiteRingExistence(Board,[_|LTail], Searched):- verifyWhiteRingExistence(Board,LTail,Searched),!.
+
+mainMenu:-
+	printMainMenu,
+	createBoard(B),
+	read(Input),
+	((Input =:= 1, play(B,0), mainMenu);
+	(Input =:= 2, printHowToPlay, mainMenu);
+	(Input =:= 3, printCredits, mainMenu);
+	(Input =:= 4);
+	(nl, write('Error: invalid input.'),nl, mainMenu)).
+	
+printMainMenu:-
+	write('      * * * *         '), nl,
+	write('    *         *       '), nl,
+	write('  *  Duplo Hex  *     '), nl,
+	write('    *         *       '), nl,
+	write('      * * * *         '), nl,
+	write('  ******************  '), nl,
+	write('    1. Play           '), nl,
+	write('    2. How to play    '), nl,
+	write('    3. Credits        '), nl,
+	write('    4. Exit           '), nl,
+	write('  ******************  '), nl,
+	write('                      '), nl,
+	write('  Choose an option:   '), nl.
+
+printHowToPlay:-
+	write('                               * * * *                            '), nl,
+	write('                             *         *                          '), nl,
+	write('                           * How to play *                        '), nl,
+	write('                             *         *                          '), nl,
+	write('                               * * * *                            '), nl,  
+	write('  *************************************************************   '), nl,  
+	write('     The board starts empty  The White player goes first          '), nl,
+	write('       There are 2 types of moves: MOVE and PLACE a pawn          '), nl,
+	write('          There are 2 types of pawns: RINGS and DISKS             '), nl,
+	write('               Blacks play for left and right                     '), nl,
+   	write('               Whites play for top and bottom                     '), nl,
+	write('                                                                  '), nl,
+	write('    In each play you can place a pawn and move another            '), nl,
+	write('                                                                  '), nl,
+	write('    You can only place a pawn when the cell is completely empty   '), nl,
+	write('                                                                  '), nl,
+	write('     You can move a pawn when the cell as none of its kind        '), nl,
+	write('                                                                  '), nl,
+	write('     The game ends when you can do a chain of Rings or Disks      '), nl,
+	write('     to the other side                                            '), nl,
+	write('                                                                  '), nl,
+	write('  *************************************************************   '), nl.  
+
+
+printCredits:-
+	write('                               * * * *                            '), nl,
+	write('                             *         *                          '), nl,
+	write('                           *   Credits   *                        '), nl,
+	write('                             *         *                          '), nl,
+	write('                               * * * *                            '), nl, 
+	write('  *************************************************************   '), nl,
+	write('             João Estrada Gouveia - MIEIC - up201303988           '), nl,
+	write('         João Pedro Bernardes Mendonça - MIEIC -up201304605       '), nl,
+	write('                                                                  '), nl,
+	write('  *************************************************************   '), nl.  
