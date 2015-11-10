@@ -1,110 +1,20 @@
-/* Como fazer as jogadas:
-	Pretas:
-		Para colocar um anel -  placeBlackRing([lin,col]).
-		Para colocar um disco - placeBlackDisk([lin,col]).
-		Para mover um anel - moveBlackRing([lin,col]).
-		Para mover um disco - moveBlackDisk([lin,col]).
-
-	Brancas:
-		Para colocar um anel -  placeWhiteRing([lin,col]).
-		Para colocar um disco - placeWhiteDisk([lin,col]).
-		Para mover um anel - moveWhiteRing([lin,col]).
-		Para mover um disco - moveWhiteDisk([lin,col]).
-
-*/
 
 :- use_module(library(lists)).
 :- use_module(library(between)).
 :- use_module(library(random)).
 
-/* Estrutura de dados: Lista 7*7 [[anel, disco],[anel,disco],...] */
+/* data structure: list 7*7 [[ring, disk],[ring,disk],...] */
 
 createBoard(B):- 
-	B = [[[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
-		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+	B = [[[1,0], [1,0], [1,0], [1,0], [1,0], [1,0], [0,0]],
+		  [[1,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[1,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[1,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[1,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
+		  [[1,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]],
 		  [[0,0], [0,0], [0,0], [0,0], [0,0], [0,0], [0,0]]].	
 
-displayBoard([]):-
-	printHorizontalLine(29).
 
-displayBoard([Line|B]):-
-	displayLine(Line),
-	displayBoard(B).
-
-/* init function */
-init(X,Y,Ring,Disk):-createBoard(B),drawBoard(B,0),setRing(B,X,Y,Ring,NewB),setDisk(NewB,X,Y,Disk,NewB2),drawBoard(NewB2,0).
-	
-
-getRing([Ring,_],Ring).
-
-getDisk([_,Disk],Disk).
-
-displayLine(Line):-
-	printHorizontalLine(29),
-	printRings(Line),
-	printDisks(Line).
-
-printRings([]):-
-	printVerticalLine(1),
-	nl.
-
-printRings([Elem|Line]):-
-	printVerticalLine(1),
-	emptySpace(1),
-	getRing(Elem,Ring),
-	write(Ring),
-	emptySpace(1),
-	printRings(Line).
-
-printDisks([]):-
-	printVerticalLine(1),
-	nl.
-
-printDisks([Elem|Line]):-
-	printVerticalLine(1),
-	emptySpace(1),
-	getDisk(Elem,Ring),
-	write(Ring),
-	emptySpace(1),
-	printDisks(Line).
-
-/* imprime as linhas horizontais*/
-printHorizontalLine(0):-
-	nl.
-printHorizontalLine(NumberOfDashes) :-
-	write('-'),
-	N is NumberOfDashes - 1,
-	printHorizontalLine(N).
-
-printVerticalLine(0).
-printVerticalLine(Number):-
-	write('|'),
-	N is Number - 1,
-	printVerticalLine(N).
-
-emptySpace(0).
-emptySpace(NumberofSpaces):-
-	write(' '),
-	N1 is NumberofSpaces - 1,
-	emptySpace(N1).
-
-
-placeWhiteRing(_):-
-	write('1'). 
-
-placeWhiteDisk(_):-
-	write('2').	
-
-placeBlackRing(_):-
-	write('3').
-
-placeBlackDisk(_):-
-	write('4').
-	
 	
 /*	Drawing of board 	*/
 	
@@ -130,13 +40,88 @@ drawBoard([Line|RestBoard],N):-drawBlank(N),drawBotLine(7),nl,
 				nl,
 				N1 is N + 1,
 				drawBoard(RestBoard,N1),!.
-				
+
+
+printRings([]):-
+	printVerticalLine(1),
+	nl.
+
+printRings([Elem|Line]):-
+	printVerticalLine(1),
+	emptySpace(1),
+	getRing(Elem,Ring),
+	write(Ring),
+	emptySpace(1),
+	printRings(Line).
+
+printDisks([]):-
+	printVerticalLine(1),
+	nl.
+
+printDisks([Elem|Line]):-
+	printVerticalLine(1),
+	emptySpace(1),
+	getDisk(Elem,Ring),
+	write(Ring),
+	emptySpace(1),
+	printDisks(Line).
+				displayBoard([]):-
+	printHorizontalLine(29).
+
+displayBoard([Line|B]):-
+	displayLine(Line),
+	displayBoard(B).
+
+displayLine(Line):-
+	printHorizontalLine(29),
+	printRings(Line),
+	printDisks(Line).
+
+printHorizontalLine(0):-
+	nl.
+printHorizontalLine(NumberOfDashes) :-
+	write('-'),
+	N is NumberOfDashes - 1,
+	printHorizontalLine(N).
+
+printVerticalLine(0).
+printVerticalLine(Number):-
+	write('|'),
+	N is Number - 1,
+	printVerticalLine(N).
+
+emptySpace(0).
+emptySpace(NumberofSpaces):-
+	write(' '),
+	N1 is NumberofSpaces - 1,
+	emptySpace(N1).
+
+placeWhiteRing(_):-
+	write('1'). 
+
+placeWhiteDisk(_):-
+	write('2').	
+
+placeBlackRing(_):-
+	write('3').
+
+placeBlackDisk(_):-
+	write('4').
+	
 /*	Movements	*/
 	
-/*	aux		*/
+/*	Auxilary Predicates		*/
+%Mode : 0 - Putting a piece
+%Mode : 1 - Moving a piece
+%Pawn : 0 - disk 
+%Pawn : 1 - ring 
 
 
 %Atribui um valor ao disco indicado por X e Y
+getRing([Ring,_],Ring).
+
+getDisk([_,Disk],Disk).
+
 setDisk(Board,X,Y,Disk,NewBoard):- getRing(Board,X,Y,Ring),setMatrix(Board,X,Y,[Ring,Disk],NewBoard).
 
 setRing(Board,X,Y,Ring,NewBoard):- getDisk(Board,X,Y,Disk), setMatrix(Board,X,Y,[Ring,Disk],NewBoard).
@@ -158,19 +143,17 @@ getDisk(Board,X,Y,Disk):-getElem(Board,X,Y,[_,Disk]).
 verifyEmpty([Ring,Disk]):-(Ring =:= 0, Disk =:= 0). 
 
 checkEmptyList([]):-fail,!.
-checkEmptyList(L):-!.
+checkEmptyList(_):-!.
 
+% verifies the adjacent cells
 verifyAdjacent(X,Y,Xf,Yf):- Y1  is Y - 1,Y2 is Y + 1, between(Y1,Y2,YIndex),YIndex>0,YIndex<8,Yf is YIndex,(
 							(YIndex =:= Y1,XF is X + 1,(Xf is X;(XF < 8,Xf is XF)));
 							(YIndex =:= Y,XF1 is X - 1, XF2 is X + 1,((XF1 > 0, Xf is XF1);(XF1 <8,Xf is XF2)));
 							(YIndex =:= Y2,XF is X - 1,(Xf is X;(XF > 0,Xf is XF)))
 							).
-%Mode : 0 - Putting a piece
-%Mode : 1 - Moving a piece
-%Pawn : 0 - disk 
-%Pawn : 1 - ring 
 
 
+%validates the plays that the user and the bot make
 validPlay(Board,Player,X,Y,Xf,Yf,Mode,Pawn):-
 between(1,7,Xf),between(1,7,Yf),between(1,7,X),between(1,7,Y),
 	getElem(Board,Xf,Yf,Elem),
@@ -180,9 +163,14 @@ between(1,7,Xf),between(1,7,Yf),between(1,7,X),between(1,7,Y),
 		verifyAdjacent(X,Y,Xf,Yf),
 		((Pawn =:= 1, Player =:= 0, getRing(Board,X,Y,Ring),getRing(Board,Xf,Yf,NewRing),Ring =:= 1, NewRing =:= 0);
 		(Pawn =:= 0, Player =:= 0, getDisk(Board,X,Y,Disk),getDisk(Board,Xf,Yf,NewDisk),Disk =:= 2, NewDisk =:= 0);
-		(Pawn =:= 1, Player =:= 1, getRing(Board,X,Y,Ring),getRing(Board,Xf,Yf,NewRing),Ring =:= 3, NewRing =:= 0);
+		(Pawn =:= 1, Player =:= 1, getRing(Board,X,Y,Ring),  getRing(Board,Xf,Yf,NewRing),Ring =:= 3, NewRing =:= 0);
 		(Pawn =:= 0, Player =:= 1, getDisk(Board,X,Y,Disk),getDisk(Board,Xf,Yf,NewDisk),Disk =:= 4, NewDisk =:= 0)))).
 
+
+/***************************************************************************/
+%PLAY CYCLES
+
+%pvp cycle predicate
 playPvP(Board, Player):-
 	testWin(Board),
 	drawBoard(Board,0),
@@ -200,6 +188,8 @@ playPvP(Board, Player):-
 	!, playPvP(NewBoard1,Player1).
 playPvP(Board,Player):- write('Invalid Input'),nl,nl,play(Board,Player),!.
 	
+
+%bvp cycle predicate
 playBvP(Board,Player):-
 	testWin(Board),
 	drawBoard(Board,0),
@@ -207,10 +197,12 @@ playBvP(Board,Player):-
 	playPlaceAux(NewBoard,Player,NewBoard1),
 	drawBoard(NewBoard1,0),
 	playMoveAux(NewBoard1,Player,NewBoard2),
+	NextP is 1-Player,
 	playBvP(NewBoard2,NextP).
 
-playBvP(_,Player):- fail,!.
+playBvP(_,_):- fail,!.
 
+%bvb cycle predicate
 playBvB(Board,Player):-
 	drawBoard(Board,0),
 	testWin(Board),
@@ -219,7 +211,7 @@ playBvB(Board,Player):-
 	botPlaying(Board,Player,NewBoard),
 	NextP is 1-Player,
 	playBvB(NewBoard,NextP).
-playBvB(_,Player):- fail,!.
+playBvB(_,_):- fail,!.
 
 playPlaceAux(Board,Player,NewBoard):-
 	placePawnAux(Board,Player,NewBoard),!.
@@ -230,43 +222,48 @@ playMoveAux(Board,Player,NewBoard):-
 playMoveAux(Board,Player,NewBoard):- write('Invalid Input'),nl,nl,playMoveAux(Board,Player,NewBoard),!.
 
 
+/*************************************************************************/
+%BOT PREDICATES
+
 botPlaying(Board,Player,NewBoard):-
 	write('Player: '), write(Player), nl,nl,
-	drawBoard(Board,0),
-	botPlace(Board,Player,NewBoard),
-	drawBoard(NewBoard,0),
-	botMove(NewBoard,Player,NewBoard1).
-	
+	botPlace(Board,Player,NewBoard1),
+	drawBoard(NewBoard1,0),
+	botMove(NewBoard1,Player,NewBoard).
+botPlaying(_,_,_):-!.
 
+%bot placing pawns
 botPlace(Board,Player,NewBoard):-
 	random(0,2,Pawn),
-	findall([Xf,Yf],validPlay(Board,Player,1,1,Xf,Yf,0,Pawn),L),
+	findall([Xf,Yf],validPlay(Board,Player,_,_,Xf,Yf,0,_),L),
 	checkEmptyList(L),
-	length(L,Size), random(1,Size,Index), nth0(Index,L,Cell),
+	length(L,Size), random(0,Size,Index), nth0(Index,L,Cell),
 	nth0(0,Cell,X), nth0(1,Cell,Y),
 	placePawn(Board,Player,Pawn,X,Y,NewBoard).
-botPlace(_,_,_):- write('Cannot place any pawn'),nl,!.
+botPlace(_,_,_):- write('Cannot place any pawn'),nl,fail,!.
 
-
+%bot moving pawns
 botMove(Board,Player,NewBoard):-
 	random(0,2,Pawn),
 	findall([X,Y,Xf,Yf],validPlay(Board,Player,X,Y,Xf,Yf,1,Pawn),L),
-	write(L),nl,nl,
 	checkEmptyList(L),
-	length(L,Size), random(1,Size,Index), nth0(Index,L,Cell),
+	length(L,Size), random(0,Size,Index), nth0(Index,L,Cell),
 	nth0(0,Cell,X1),nth0(1,Cell,Y1),nth0(2,Cell,X1f),nth0(3,Cell,Y1f),
 	movePawn(Board,Player,X1,Y1,X1f,Y1f,Pawn,NewBoard).
-botMove(_,_,_):-write('Cannot move any pawn'),nl,!.
+botMove(_,_,_):-write('Cannot move any pawn'),nl,fail,!.
+
+
+/***************************************************************************/
+%USER PREDICATES
 
 placePawnAux(Board, Player, NewBoard):-
 	write('PLACE A PAWM'),nl,
 	write('Disk - 0 Ring - 1'),nl, read(Ans),
-	findall([Xf,Yf],validPlay(Board,Player,1,1,Xf,Yf,0,Pawn),L),
 	write('X'), read(Xf),nl,
 	write('Y'), read(Yf),nl,
 	placePawn(Board,Player,Ans,Xf,Yf,NewBoard).
 
-
+%user placing pawns
 placePawn(Board,Player,Pawn,X,Y,NewBoard):-
 	validPlay(Board, _, _, _,X,Y,0, _),
 	((Pawn =:= 0, ((Player =:= 0, Disk is 2);
@@ -296,7 +293,7 @@ movePawnAux(Board,Player,NewBoard):-
 	((Test =:= 0, !,movePawnAux(Board,Player, NewBoard));
 	(Test=:=1, movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard))).
 
-
+%user moving pawns
 movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
 	validPlay(Board,Player,X,Y,Xf,Yf,1,Pawn),
 	((Player =:= 0,((Pawn =:= 0, setDisk(Board,X,Y,0,NewBoard), setDisk(NewBoard,Xf,Yf,2,NewBoard2));
@@ -306,7 +303,7 @@ movePawn(Board,Player,X,Y,Xf,Yf,Pawn,NewBoard2):-
 
 movePawn(Board,Player,_,_,_,_,_,NewBoard):- write('Invalid Play'),nl,nl, movePawnAux(Board,Player,NewBoard),!.
 
-
+%WINING CONDITIONS
 testWin(Board):-
 	\+winBlackDisk(Board,1,1,[1,1]),
 	\+winBlackRing(Board,1,1,[1,1]),
@@ -314,7 +311,7 @@ testWin(Board):-
 	\+winWhiteRing(Board,1,1,[1,1]).
 
 /*------------------------------------------------------------*/
-%BLACK DISK
+%BLACK DISK WINING CONDITION
 
 winBlackDisk(_,_,7,_):-write('BLACK WON DISK !!!!!!'),nl,!.
 winBlackDisk(Board,X,Y,Searched):-
@@ -335,7 +332,7 @@ verifyBlackDiskExistence(Board,[L|_],Searched):-
 	winBlackDisk(Board,X,Y,NewSearched),!.
 verifyBlackDiskExistence(Board,[_|LTail], Searched):- verifyBlackDiskExistence(Board,LTail,Searched),!.
 /*------------------------------------------------------------*/
-%BLACK RING
+%BLACK RING WINING CONDITION
 
 winBlackRing(_,_,7,_):-write('BLACK WON RING !!!'),nl,!.
 winBlackRing(Board,X,Y,Searched):-
@@ -356,7 +353,7 @@ verifyBlackRingExistence(Board,[L|_],Searched):-
 	winBlackRing(Board,X,Y,NewSearched),!.
 verifyBlackRingExistence(Board,[_|LTail], Searched):- verifyBlackRingExistence(Board,LTail,Searched),!.
 /*-----------------------------------------------------------------------------------*/
-%White DISK
+%White DISK WINING CONDITION
 
 winWhiteDisk(_,7,_,_):-write('White WON DISK !!!!!'),nl,!.
 winWhiteDisk(Board,X,Y,Searched):-
@@ -378,8 +375,7 @@ verifyWhiteDiskExistence(Board,[L|_],Searched):-
 verifyWhiteDiskExistence(Board,[_|LTail], Searched):- verifyWhiteDiskExistence(Board,LTail,Searched),!.
 
 /*------------------------------------------------------------------------------*/
-%WHITE RING
-%BLACK RING
+%WHITE RING WINING CONDITION
 
 winWhiteRing(_,7,_,_):-write('White WON RING !!!!'),nl,!.
 winWhiteRing(Board,X,Y,Searched):-
@@ -402,6 +398,8 @@ verifyWhiteRingExistence(Board,[_|LTail], Searched):- verifyWhiteRingExistence(B
 
 
 
+/*********************************************************************************/
+%USER INTERFACE
 
 mainMenu:-
 	printMainMenu,
@@ -484,7 +482,7 @@ printCredits:-
 	write('                             *         *                          '), nl,
 	write('                               * * * *                            '), nl, 
 	write('  *************************************************************   '), nl,
-	write('             João Estrada Gouveia - MIEIC - up201303988           '), nl,
-	write('         João Pedro Bernardes Mendonça - MIEIC -up201304605       '), nl,
+	write('             Joao Estrada Gouveia - MIEIC - up201303988           '), nl,
+	write('         Joao Pedro Bernardes Mendonça - MIEIC -up201304605       '), nl,
 	write('                                                                  '), nl,
 	write('  *************************************************************   '), nl.  
